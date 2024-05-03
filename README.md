@@ -1,6 +1,9 @@
 # Team-Merchandising-Revenue-System
+import streamlit as st
 import json
 
+def display_image(url):
+    st.image(url, caption='Brand', use_column_width=True)
 class Team:
     def __init__(self, team_id, team_name):
         self.team_id = team_id
@@ -35,52 +38,62 @@ def load_data():
         return None
 
 def main():
-    while True:
-        print("\nTeam Merchandising Revenue System")
-        print("1. Input Team Details")
-        print("2. Input Merchandise Details")
-        print("3. Calculate Team Revenue")
-        print("4. Save Data")
-        print("5. Load Data")
-        print("6. Display Data")
-        print("7. Exit")
-        
-        menu_choice = input("Enter your choice: ")
+    st.title("Team Merchandising Revenue System")
+    image_url = "C:/Users/aishw/Downloads/merch1.jpg"
 
-        if menu_choice == "1":
-            print("Input Team Details")
-            team_id = int(input("Enter Team ID: "))
-            team_name = input("Enter Team Name: ")
-            team = Team(team_id, team_name)
+    # Display the image
+    display_image(image_url)
 
-        elif menu_choice == "2":
-            print("Input Merchandise Details")
-            if not team:
-                print("Please input team details first.")
-            else:
-                merch_id = int(input("Enter Merchandise ID: "))
-                name = input("Enter Merchandise Name: ")
-                price = float(input("Enter Merchandise Price: "))
-                total_quantity = int(input("Enter Total Quantity: "))
-                sold_quantity = int(input("Enter Sold Quantity: "))
-                selling_price = float(input("Enter Selling Price: "))
-                merchandise = Merchandise(merch_id, name, price, total_quantity, sold_quantity, selling_price)
-                team.merchandise_list.append(merchandise)
+    st.sidebar.header("Menu")
 
-        elif menu_choice == "3":
-            if not team:
-                print("Please input team details first.")
-            else:
-                production_cost = float(input("Enter Production Cost: "))
-                advertising_cost = float(input("Enter Advertising Cost: "))
+    input_team = st.sidebar.checkbox("Input Team Details")
+    input_merchandise = st.sidebar.checkbox("Input Merchandise Details")
+    calculate_revenue = st.sidebar.checkbox("Calculate Team Revenue")
+    save_data_btn = st.sidebar.checkbox("Save Data")
+    load_data_btn = st.sidebar.checkbox("Load Data")
+    display_data_btn = st.sidebar.checkbox("Display Data")
+
+    team = None
+    if input_team:
+        st.subheader("Input Team Details")
+        team_id = st.number_input("Enter Team ID", step=1)
+        team_name = st.text_input("Enter Team Name")
+        team = Team(team_id, team_name)
+        if st.button("Submit Team Details"):
+            pass
+
+    if input_merchandise:
+        st.subheader("Input Merchandise Details")
+        if not team:
+            st.error("Please input team details first.")
+        else:
+            merch_id = st.number_input("Enter Merchandise ID", step=1)
+            name = st.text_input("Enter Merchandise Name")
+            price = st.number_input("Enter Merchandise Price", step=0.01)
+            total_quantity = st.number_input("Enter Total Quantity", step=1)
+            sold_quantity = st.number_input("Enter Sold Quantity", step=1)
+            selling_price = st.number_input("Enter Selling Price", step=0.01)
+            merchandise = Merchandise(merch_id, name, price, total_quantity, sold_quantity, selling_price)
+            team.merchandise_list.append(merchandise)
+            if st.button("Submit Merchandise Details"):
+                pass
+
+    if calculate_revenue:
+        if not team:
+            st.error("Please input team details first.")
+        else:
+            production_cost = st.number_input("Enter Production Cost", step=0.01)
+            advertising_cost = st.number_input("Enter Advertising Cost", step=0.01)
+            if st.button("Calculate Revenue"):
                 total_revenue, profit = team.calculate_team_revenue(production_cost, advertising_cost)
-                print(f"Total Revenue for Team {team.team_name}: ${total_revenue}")
-                print(f"Profit for Team {team.team_name}: ${profit}")
+                st.write(f"Total Revenue for Team {team.team_name}: ${total_revenue}")
+                st.write(f"Profit for Team {team.team_name}: ${profit}")
 
-        elif menu_choice == "4":
-            if not team:
-                print("Please input team details first.")
-            else:
+    if save_data_btn:
+        if not team:
+            st.error("Please input team details first.")
+        else:
+            if st.button("Save Data"):
                 data_to_save = {
                     "team_id": team.team_id,
                     "team_name": team.team_name,
@@ -90,9 +103,10 @@ def main():
                                          for merch in team.merchandise_list]
                 }
                 save_data(data_to_save)
-                print("Data saved successfully.")
+                st.success("Data saved successfully.")
 
-        elif menu_choice == "5":
+    if load_data_btn:
+        if st.button("Load Data"):
             loaded_data = load_data()
             if loaded_data:
                 team_id = loaded_data.get("team_id")
@@ -105,27 +119,21 @@ def main():
                                             merch_data["price"], merch_data["total_quantity"],
                                             merch_data["sold_quantity"], merch_data["selling_price"])
                         team.merchandise_list.append(merch)
-                    print("Data loaded successfully.")
+                    st.success("Data loaded successfully.")
                 else:
-                    print("Loaded data is missing required fields.")
+                    st.error("Loaded data is missing required fields.")
             else:
-                print("No data found.")
+                st.error("No data found.")
 
-        elif menu_choice == "6":
-            if not team:
-                print("Please input or load team details first.")
-            else:
-                print(f"Team ID: {team.team_id}, Team Name: {team.team_name}")
-                print("Merchandise List:")
-                for merch in team.merchandise_list:
-                    print(f"- ID: {merch.id}, Name: {merch.name}, Price: {merch.price}, Total Quantity: {merch.total_quantity}, Sold Quantity: {merch.sold_quantity}, Selling Price: {merch.selling_price}")
-
-        elif menu_choice == "7":
-            print("Exiting the program.")
-            break
-
+    if display_data_btn:
+        if not team:
+            st.error("Please input or load team details first.")
         else:
-            print("Invalid choice. Please enter a valid option.")
+            if st.button("Display Data"):
+                st.write(f"Team ID: {team.team_id}, Team Name: {team.team_name}")
+                st.write("Merchandise List:")
+                for merch in team.merchandise_list:
+                    st.write(f"- ID: {merch.id}, Name: {merch.name}, Price: {merch.price}, Total Quantity: {merch.total_quantity}, Sold Quantity: {merch.sold_quantity}, Selling Price: {merch.selling_price}")
 
 if __name__ == "__main__":
     main()
